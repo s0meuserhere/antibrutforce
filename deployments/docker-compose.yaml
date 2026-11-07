@@ -1,0 +1,57 @@
+name: antibf
+
+services:
+  postgres:
+    image: postgres:16.15-alpine3.24
+    environment:
+      POSTGRES_USER: antibf
+      POSTGRES_PASSWORD: antibf
+      POSTGRES_DB: antibf
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U antibf -d antibf"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  redis:
+    image: redis:8.10.3-alpine3.23
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  antibf:
+    build:
+      context: ..
+      dockerfile: build/antibf/Dockerfile
+    environment:
+      GRPC_HOST: 0.0.0.0
+      GRPC_PORT: "50051"
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_USER: antibf
+      DB_PASSWORD: antibf
+      DB_NAME: antibf
+      DB_SSL: disable
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+    ports:
+      - "50051:50051"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+  redis-data:
