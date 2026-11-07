@@ -1,0 +1,115 @@
+version: "2"
+run:
+  tests: true
+linters:
+  default: none
+  enable:
+    - asciicheck
+    - bodyclose
+    - depguard
+    - dogsled
+    - dupl
+    - durationcheck
+    - err113
+    - errcheck
+    - errorlint
+    - exhaustive
+    - forbidigo
+    - funlen
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - godot
+    - gomoddirectives
+    - gomodguard_v2
+    - goprintffuncname
+    - gosec
+    - govet
+    - importas
+    - ineffassign
+    - lll
+    - makezero
+    - misspell
+    - nestif
+    - nilerr
+    - nlreturn
+    - noctx
+    - nolintlint
+    - prealloc
+    - predeclared
+    - revive
+    - rowserrcheck
+    - sqlclosecheck
+    - staticcheck
+    - tagliatelle
+    - thelper
+    - tparallel
+    - unconvert
+    - unparam
+    - unused
+    - wastedassign
+    - whitespace
+    - wrapcheck
+  settings:
+    depguard:
+      rules:
+        domain:
+          list-mode: strict
+          files:
+            - "**/internal/domain/**"
+            - "!$test"
+          allow:
+            - $gostd
+            - github.com/s0meuserhere/antibrutforce/internal/domain
+        main:
+          files:
+            - $all
+          deny:
+            - pkg: github.com/pkg/errors
+              desc: ошибки оборачиваются через fmt.Errorf с %w
+    forbidigo:
+      forbid:
+        - pattern: ^time\.Now$
+          msg: время приходит в домен аргументом
+    funlen:
+      lines: 150
+      statements: 80
+    wrapcheck:
+      ignore-sigs:
+        - .Errorf(
+        - errors.New(
+        - errors.Unwrap(
+        - errors.Join(
+        - status.Error(
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - path-except: internal/domain/
+        linters:
+          - forbidigo
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gci
+    - gofumpt
+  settings:
+    gci:
+      sections:
+        - standard
+        - default
+        - localmodule
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

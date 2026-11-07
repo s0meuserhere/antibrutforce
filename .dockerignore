@@ -1,0 +1,5 @@
+bin/
+.git/
+.github/
+.idea/
+deployments/
