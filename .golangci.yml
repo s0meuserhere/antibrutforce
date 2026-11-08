@@ -50,6 +50,7 @@ linters:
     - unused
     - wastedassign
     - whitespace
+    - wsl_v5
     - wrapcheck
   settings:
     depguard:
@@ -93,6 +94,9 @@ linters:
       - path-except: internal/domain/
         linters:
           - forbidigo
+      - path: _test\.go
+        linters:
+          - goconst
     paths:
       - third_party$
       - builtin$
