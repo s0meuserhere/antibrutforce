@@ -5,12 +5,15 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"log/slog"
+	"net"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/s0meuserhere/antibrutforce/internal/app"
 	"github.com/s0meuserhere/antibrutforce/internal/config"
+	"github.com/s0meuserhere/antibrutforce/internal/grpcserver"
 )
 
 func main() {
@@ -42,7 +45,27 @@ func run(configPath string) (err error) {
 		err = errors.Join(err, a.Close())
 	}()
 
-	<-ctx.Done()
+	var listenConfig net.ListenConfig
+
+	listener, err := listenConfig.Listen(ctx, "tcp", cfg.GRPC.Addr())
+	if err != nil {
+		return fmt.Errorf("listen grpc: %w", err)
+	}
+
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	server := grpcserver.New(a.Service(), logger, cfg.RequestTimeout)
+
+	// После сигнала сервер дожидается текущих запросов, и Serve возвращает nil.
+	go func() {
+		<-ctx.Done()
+		server.GracefulStop()
+	}()
+
+	logger.Info("antibf started", "grpc", cfg.GRPC.Addr())
+
+	if err := server.Serve(listener); err != nil {
+		return fmt.Errorf("serve grpc: %w", err)
+	}
 
 	return nil
 }
