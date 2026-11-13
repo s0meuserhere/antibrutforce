@@ -5,7 +5,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"log/slog"
 	"net"
 	"os"
 	"os/signal"
@@ -14,6 +13,8 @@ import (
 	"github.com/s0meuserhere/antibrutforce/internal/app"
 	"github.com/s0meuserhere/antibrutforce/internal/config"
 	"github.com/s0meuserhere/antibrutforce/internal/grpcserver"
+	"github.com/s0meuserhere/antibrutforce/internal/infrastructure/redisdb"
+	"github.com/s0meuserhere/antibrutforce/internal/logger"
 )
 
 func main() {
@@ -32,6 +33,9 @@ func run(configPath string) (err error) {
 	if err != nil {
 		return fmt.Errorf("load config: %w", err)
 	}
+
+	log := logger.New(cfg.Environment, cfg.Logger.Level)
+	redisdb.SetLogger(log)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
@@ -52,8 +56,7 @@ func run(configPath string) (err error) {
 		return fmt.Errorf("listen grpc: %w", err)
 	}
 
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	server := grpcserver.New(a.Service(), logger, cfg.RequestTimeout)
+	server := grpcserver.New(a.Service(), log, cfg.RequestTimeout)
 
 	// После сигнала сервер дожидается текущих запросов, и Serve возвращает nil.
 	go func() {
@@ -61,7 +64,7 @@ func run(configPath string) (err error) {
 		server.GracefulStop()
 	}()
 
-	logger.Info("antibf started", "grpc", cfg.GRPC.Addr())
+	log.Info("antibf started", "env", cfg.Environment, "grpc", cfg.GRPC.Addr())
 
 	if err := server.Serve(listener); err != nil {
 		return fmt.Errorf("serve grpc: %w", err)

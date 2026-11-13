@@ -32,7 +32,11 @@ type App struct {
 type Server struct {
 	App
 
-	GRPC GRPC
+	// Environment - окружение запуска. В local логи пишутся текстом, в остальных - JSON.
+	Environment string `env:"ENVIRONMENT" env-default:"local"`
+
+	GRPC   GRPC
+	Logger Logger
 }
 
 // LoadServer читает настройки сервера. Файл path необязателен,
