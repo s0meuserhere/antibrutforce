@@ -23,6 +23,7 @@ linters:
     - gocritic
     - gocyclo
     - godot
+    - goheader
     - gomoddirectives
     - gomodguard_v2
     - goprintffuncname
@@ -107,6 +108,7 @@ linters:
 formatters:
   enable:
     - gci
+    - gofmt
     - gofumpt
   settings:
     gci:
