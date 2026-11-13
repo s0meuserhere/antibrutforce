@@ -5,7 +5,9 @@ GOLANGCI_VERSION := v2.15.0
 PROTOC_GEN_GO_VERSION := v1.36.12
 PROTOC_GEN_GO_GRPC_VERSION := v1.6.2
 
-.PHONY: build test lint install-lint-deps install-proto-deps generate run down
+COMPOSE_TESTS := docker compose -f deployments/docker-compose.test.yaml
+
+.PHONY: build test integration-tests lint install-lint-deps install-proto-deps generate run down
 
 build:
 	mkdir -p $(BIN_DIR)
@@ -14,6 +16,13 @@ build:
 
 test:
 	go test -race -count 100 ./...
+
+integration-tests:
+	$(COMPOSE_TESTS) build
+	$(COMPOSE_TESTS) run --rm integration_tests; \
+	code=$$?; \
+	$(COMPOSE_TESTS) down -v; \
+	exit $$code
 
 install-lint-deps:
 	@$(TOOLS_DIR)/golangci-lint version 2>/dev/null | grep -q "version $(GOLANGCI_VERSION:v%=%) " \
