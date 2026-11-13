@@ -54,6 +54,21 @@ func LoadServer(path string) (Server, error) {
 	return cfg, nil
 }
 
+// LoadApp читает настройки, общие для сервера и CLI. Файл path необязателен,
+// переменные окружения важнее значений из него.
+func LoadApp(path string) (App, error) {
+	var cfg App
+	if err := load(path, &cfg); err != nil {
+		return App{}, err
+	}
+
+	if err := cfg.validate(); err != nil {
+		return App{}, err
+	}
+
+	return cfg, nil
+}
+
 // load подгружает файл в окружение, не затирая уже заданные переменные,
 // и читает cfg из окружения.
 func load(path string, cfg any) error {
