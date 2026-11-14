@@ -1,7 +1,6 @@
 # Анти-брутфорс
 
 [![ci](https://github.com/s0meuserhere/antibrutforce/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/s0meuserhere/antibrutforce/actions/workflows/ci.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/s0meuserhere/antibrutforce)](https://goreportcard.com/report/github.com/s0meuserhere/antibrutforce)
 
 Сервис вызывается перед авторизацией и решает, пропустить ли попытку входа. Он ограничивает частоту попыток по логину, паролю и IPv4 и ведёт whitelist и blacklist подсетей.
 
