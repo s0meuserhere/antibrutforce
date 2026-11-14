@@ -1,0 +1,73 @@
+# Окружение интеграционных тестов.
+name: antibf-tests
+
+services:
+  postgres:
+    image: postgres:16.15-alpine3.24
+    environment:
+      POSTGRES_USER: antibf
+      POSTGRES_PASSWORD: antibf
+      POSTGRES_DB: antibf
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U antibf -d antibf"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  redis:
+    image: redis:8.10.3-alpine3.23
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  migrate:
+    build:
+      context: ..
+      dockerfile: build/migrate/Dockerfile
+    environment:
+      GOOSE_DBSTRING: postgres://antibf:antibf@postgres:5432/antibf?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  antibf:
+    build:
+      context: ..
+      dockerfile: build/antibf/Dockerfile
+    environment:
+      ENVIRONMENT: docker
+      LOG_LEVEL: info
+      GRPC_HOST: 0.0.0.0
+      GRPC_PORT: "50051"
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_USER: antibf
+      DB_PASSWORD: antibf
+      DB_NAME: antibf
+      DB_SSL: disable
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      NETLIST_CACHE_TTL: 1m
+      LIMIT_LOGIN: "5"
+      LIMIT_PASSWORD: "10"
+      LIMIT_IP: "20"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  integration_tests:
+    build:
+      context: ..
+      dockerfile: build/integration_tests/Dockerfile
+    environment:
+      ANTIBF_GRPC_ADDR: antibf:50051
+      LIMIT_LOGIN: "5"
+      LIMIT_PASSWORD: "10"
+      LIMIT_IP: "20"
+    depends_on:
+      antibf:
+        condition: service_started

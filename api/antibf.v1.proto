@@ -1,0 +1,139 @@
+syntax = "proto3";
+
+package antibf.v1;
+
+option go_package = "github.com/s0meuserhere/antibrutforce/gen/antibf/v1;antibfv1";
+
+// AntiBruteforceService решает, пропустить ли попытку авторизации,
+// и управляет бакетами и списками подсетей.
+//
+// Если код ответа не OK, в деталях статуса лежит google.rpc.ErrorInfo,
+// его reason - имя значения ErrReason из ответа метода.
+// В ответе с кодом OK причины нет.
+service AntiBruteforceService {
+  // CheckV1 проверяет попытку авторизации перед входом.
+  rpc CheckV1(CheckV1Request) returns (CheckV1Response);
+
+  // ResetV1 сбрасывает бакеты логина и IP. Бакет пароля не сбрасывается.
+  rpc ResetV1(ResetV1Request) returns (ResetV1Response);
+
+  // AddToBlacklistV1 добавляет подсеть в blacklist. Повторное добавление ничего не меняет.
+  rpc AddToBlacklistV1(AddToBlacklistV1Request) returns (AddToBlacklistV1Response);
+
+  // RemoveFromBlacklistV1 удаляет подсеть из blacklist. Удаление отсутствующей подсети ничего не меняет.
+  rpc RemoveFromBlacklistV1(RemoveFromBlacklistV1Request) returns (RemoveFromBlacklistV1Response);
+
+  // AddToWhitelistV1 добавляет подсеть в whitelist. Повторное добавление ничего не меняет.
+  rpc AddToWhitelistV1(AddToWhitelistV1Request) returns (AddToWhitelistV1Response);
+
+  // RemoveFromWhitelistV1 удаляет подсеть из whitelist. Удаление отсутствующей подсети ничего не меняет.
+  rpc RemoveFromWhitelistV1(RemoveFromWhitelistV1Request) returns (RemoveFromWhitelistV1Response);
+}
+
+message CheckV1Request {
+  string login = 1;
+  string password = 2;
+
+  // ip - адрес IPv4, например 192.1.1.10.
+  string ip = 3;
+}
+
+message CheckV1Response {
+  enum ErrReason {
+    // UNKNOWN - причина не из списка ниже, например сбой хранилища.
+    UNKNOWN = 0;
+
+    // EMPTY_LOGIN - пустой логин.
+    EMPTY_LOGIN = 1;
+
+    // EMPTY_PASSWORD - пустой пароль.
+    EMPTY_PASSWORD = 2;
+
+    // INVALID_IP - ip не является адресом IPv4.
+    INVALID_IP = 3;
+  }
+
+  // ok - пропустить ли попытку.
+  bool ok = 1;
+}
+
+// ResetV1Request требует хотя бы логин или IP.
+message ResetV1Request {
+  string login = 1;
+
+  // ip - адрес IPv4, например 192.1.1.10.
+  string ip = 2;
+}
+
+message ResetV1Response {
+  enum ErrReason {
+    // UNKNOWN - причина не из списка ниже, например сбой хранилища.
+    UNKNOWN = 0;
+
+    // EMPTY_TARGET - не указаны ни логин, ни IP.
+    EMPTY_TARGET = 1;
+
+    // INVALID_IP - ip не является адресом IPv4.
+    INVALID_IP = 2;
+  }
+}
+
+message AddToBlacklistV1Request {
+  // subnet - IPv4-подсеть с маской, например 192.1.1.0/25.
+  string subnet = 1;
+}
+
+message AddToBlacklistV1Response {
+  enum ErrReason {
+    // UNKNOWN - причина не из списка ниже, например сбой хранилища.
+    UNKNOWN = 0;
+
+    // INVALID_SUBNET - subnet не является IPv4-подсетью в записи CIDR.
+    INVALID_SUBNET = 1;
+  }
+}
+
+message RemoveFromBlacklistV1Request {
+  // subnet - IPv4-подсеть с маской, например 192.1.1.0/25.
+  string subnet = 1;
+}
+
+message RemoveFromBlacklistV1Response {
+  enum ErrReason {
+    // UNKNOWN - причина не из списка ниже, например сбой хранилища.
+    UNKNOWN = 0;
+
+    // INVALID_SUBNET - subnet не является IPv4-подсетью в записи CIDR.
+    INVALID_SUBNET = 1;
+  }
+}
+
+message AddToWhitelistV1Request {
+  // subnet - IPv4-подсеть с маской, например 192.1.1.0/25.
+  string subnet = 1;
+}
+
+message AddToWhitelistV1Response {
+  enum ErrReason {
+    // UNKNOWN - причина не из списка ниже, например сбой хранилища.
+    UNKNOWN = 0;
+
+    // INVALID_SUBNET - subnet не является IPv4-подсетью в записи CIDR.
+    INVALID_SUBNET = 1;
+  }
+}
+
+message RemoveFromWhitelistV1Request {
+  // subnet - IPv4-подсеть с маской, например 192.1.1.0/25.
+  string subnet = 1;
+}
+
+message RemoveFromWhitelistV1Response {
+  enum ErrReason {
+    // UNKNOWN - причина не из списка ниже, например сбой хранилища.
+    UNKNOWN = 0;
+
+    // INVALID_SUBNET - subnet не является IPv4-подсетью в записи CIDR.
+    INVALID_SUBNET = 1;
+  }
+}

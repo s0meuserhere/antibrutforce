@@ -29,11 +29,23 @@ services:
       timeout: 2s
       retries: 30
 
+  migrate:
+    build:
+      context: ..
+      dockerfile: build/migrate/Dockerfile
+    environment:
+      GOOSE_DBSTRING: postgres://antibf:antibf@postgres:5432/antibf?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   antibf:
     build:
       context: ..
       dockerfile: build/antibf/Dockerfile
     environment:
+      ENVIRONMENT: docker
+      LOG_LEVEL: info
       GRPC_HOST: 0.0.0.0
       GRPC_PORT: "50051"
       DB_HOST: postgres
@@ -44,11 +56,12 @@ services:
       DB_SSL: disable
       REDIS_HOST: redis
       REDIS_PORT: "6379"
+      NETLIST_CACHE_TTL: 1m
     ports:
       - "50051:50051"
     depends_on:
-      postgres:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
       redis:
         condition: service_healthy
 
